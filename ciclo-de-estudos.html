@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ciclo de Estudos — Gestão de Edital</title>
+<style>
+  :root{
+    --bg:#f8fafc; --bg-elev:#ffffff; --bg-sunken:#f1f5f9;
+    --text:#0f172a; --text-muted:#64748b; --border:#e2e8f0;
+    --accent:#6366f1; --accent-soft:#eef2ff; --accent-contrast:#ffffff;
+    --danger:#ef4444; --danger-soft:#fef2f2;
+    --radius-lg:1rem; --radius-md:0.7rem; --radius-sm:0.45rem;
+    --shadow-sm:0 1px 2px rgba(15,23,42,0.06);
+    --shadow-md:0 4px 16px rgba(15,23,42,0.08);
+    --sidebar-w:250px; --sidebar-w-collapsed:76px;
+  }
+  html.dark{
+    --bg:#0f172a; --bg-elev:#1e293b; --bg-sunken:#172033;
+    --text:#f1f5f9; --text-muted:#94a3b8; --border:#334155;
+    --accent:#818cf8; --accent-soft:#312e81; --accent-contrast:#0f172a;
+    --danger:#f87171; --danger-soft:#3f1d1d;
+    --shadow-sm:0 1px 2px rgba(0,0,0,0.3);
+    --shadow-md:0 8px 24px rgba(0,0,0,0.4);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  body,input,select,textarea,button{
+    font-family:'Inter',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    color:var(--text);
+  }
+  body{
+    background:var(--bg); min-height:100vh; display:flex;
+    transition:background .2s ease, color .2s ease;
+  }
+  a{color:inherit; text-decoration:none;}
+  .hidden{display:none !important;}
+  .muted{color:var(--text-muted); font-size:0.85rem; line-height:1.5;}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:var(--sidebar-w); flex:0 0 var(--sidebar-w); background:var(--bg-elev);
+    border-right:1px solid var(--border); display:flex; flex-direction:column;
+    padding:1.25rem 1rem; gap:1.5rem; position:sticky; top:0; height:100vh;
+    transition:width .2s ease, flex-basis .2s ease, transform .25s ease; z-index:40;
+  }
+  .sidebar.collapsed{width:var(--sidebar-w-collapsed); flex-basis:var(--sidebar-w-collapsed);}
+  .sidebar-header{display:flex; align-items:center; gap:0.6rem;}
+  .logo-dot{width:11px; height:11px; border-radius:50%; background:var(--accent); flex:0 0 auto; box-shadow:0 0 0 4px var(--accent-soft);}
+  .sidebar-header h1{font-size:0.98rem; font-weight:700; margin:0; flex:1; white-space:nowrap; overflow:hidden;}
+  .sidebar.collapsed .sidebar-header h1,
+  .sidebar.collapsed .nav-link span:last-child,
+  .sidebar.collapsed .theme-switch span{display:none;}
+  #sidebar-toggle{margin-left:auto;}
+  .sidebar-nav{display:flex; flex-direction:column; gap:0.15rem;}
+  .nav-link{
+    display:flex; align-items:center; gap:0.7rem; padding:0.55rem 0.6rem;
+    border-radius:var(--radius-sm); font-size:0.88rem; font-weight:500; color:var(--text-muted);
+    white-space:nowrap; overflow:hidden;
+  }
+  .nav-link:hover{background:var(--bg-sunken); color:var(--text);}
+  .nav-link.active{background:var(--accent-soft); color:var(--accent);}
+  .nav-icon{font-size:1rem; width:1.1rem; text-align:center; flex:0 0 auto;}
+  .sidebar-footer{margin-top:auto; padding-top:0.75rem; border-top:1px solid var(--border);}
+  .theme-switch{display:flex; align-items:center; gap:0.6rem; font-size:0.82rem; color:var(--text-muted); cursor:pointer;}
+  .icon-btn{
+    border:none; background:transparent; cursor:pointer; font-size:0.95rem; line-height:1;
+    padding:0.3rem 0.4rem; border-radius:var(--radius-sm); color:var(--text-muted);
+  }
+  .icon-btn:hover{background:var(--bg-sunken); color:var(--text);}
+  .icon-btn.danger:hover{background:var(--danger-soft); color:var(--danger);}
+  .icon-btn.tiny{font-size:0.85rem; padding:0.1rem 0.35rem;}
+
+  /* ---------- Main ---------- */
+  .main-content{flex:1; padding:1.75rem 2rem 4rem; max-width:1400px; min-width:0;}
+  .mobile-menu-btn{display:none; margin-bottom:1rem; background:var(--bg-elev); border:1px solid var(--border); border-radius:var(--radius-sm); padding:0.4rem 0.7rem; cursor:pointer;}
+  .view{display:none;}
+  .view.active{display:block; animation:fadein .15s ease;}
+  @keyframes fadein{from{opacity:0;} to{opacity:1;}}
+  .view-header{display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1.25rem; flex-wrap:wrap;}
+  .view-header h2{font-size:1.4rem; margin:0; font-weight:700;}
+  .view-header-actions{display:flex; gap:0.5rem;}
+
+  button{cursor:pointer; font-size:0.85rem; border-radius:var(--radius-sm); border:1px solid transparent; padding:0.5rem 0.9rem; font-weight:600; transition:.15s ease;}
+  .btn-primary{background:var(--accent); color:var(--accent-contrast);}
+  .btn-primary:hover{filter:brightness(1.08);}
+  .btn-primary.full{width:100%; margin-top:0.75rem; padding:0.65rem;}
+  .btn-secondary{background:var(--bg-sunken); color:var(--text); border-color:var(--border);}
+  .btn-secondary:hover{background:var(--border);}
+  .btn-danger{background:var(--danger-soft); color:var(--danger); border-color:transparent;}
+  .btn-danger:hover{filter:brightness(0.97);}
+  .btn-text{background:transparent; color:var(--text-muted); font-weight:500; padding:0.4rem 0.5rem;}
+  .btn-text:hover{color:var(--text);}
+  .file-label{display:inline-block;}
+
+  input[type=text],input[type=number],select,textarea{
+    width:100%; padding:0.55rem 0.7rem; border-radius:var(--radius-sm); border:1px solid var(--border);
+    background:var(--bg); color:var(--text); font-size:0.87rem; margin-bottom:0.85rem;
+  }
+  input[type=color]{width:100%; height:2.4rem; padding:0.2rem; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--bg); margin-bottom:0.85rem;}
+  label{font-size:0.78rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:0.3rem;}
+
+  .disc-dot{width:10px; height:10px; border-radius:50%; background:var(--disc-color,#94a3b8); display:inline-block; flex:0 0 auto;}
+  .badge{font-size:0.68rem; font-weight:700; padding:0.15rem 0.5rem; border-radius:999px; background:var(--bg-sunken); color:var(--text-muted); white-space:nowrap;}
+  .badge-active{background:var(--accent-soft); color:var(--accent);}
+  .badge-backlog{background:var(--bg-sunken); color:var(--text-muted);}
+
+  .progress-bar{background:var(--bg-sunken); border-radius:999px; height:8px; overflow:hidden; flex:1;}
+  .progress-fill{background:var(--accent); height:100%; border-radius:999px; transition:width .3s ease;}
+  .empty-hint{color:var(--text-muted); font-size:0.83rem; padding:1rem 0.25rem; text-align:center;}
+
+  /* ---------- Dashboard ---------- */
+  .stat-cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin-bottom:1.25rem;}
+  .stat-card{background:var(--bg-elev); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.1rem 1.2rem; box-shadow:var(--shadow-sm); display:flex; flex-direction:column; gap:0.5rem; min-height:110px;}
+  .stat-label{font-size:0.72rem; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); font-weight:700;}
+  .big-number{font-size:1.9rem; font-weight:800; font-variant-numeric:tabular-nums;}
+  .stat-sub{font-size:0.78rem; color:var(--text-muted);}
+  .current-subject{font-size:1.15rem; font-weight:700; display:flex; align-items:center; gap:0.5rem; margin-top:0.15rem;}
+  .ring-wrap{position:relative; width:70px; height:70px;}
+  .progress-ring{width:70px; height:70px; transform:rotate(-90deg);}
+  .ring-bg{fill:none; stroke:var(--bg-sunken); stroke-width:9;}
+  .ring-fill{fill:none; stroke:var(--accent); stroke-width:9; stroke-linecap:round; transition:stroke-dashoffset .4s ease;}
+  .ring-value{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; font-variant-numeric:tabular-nums;}
+
+  .charts-row{display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.25rem;}
+  .chart-card{background:var(--bg-elev); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.1rem 1.2rem; box-shadow:var(--shadow-sm);}
+  .chart-card h3{margin:0 0 0.75rem; font-size:0.9rem; font-weight:700;}
+  .chart-card canvas{max-height:230px;}
+  .priority-list-card{background:var(--bg-elev); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.1rem 1.2rem; box-shadow:var(--shadow-sm);}
+  .priority-list-card h3{margin:0 0 0.75rem; font-size:0.9rem; font-weight:700;}
+  .priority-row{display:flex; align-items:center; gap:0.6rem; padding:0.5rem 0.2rem; border-bottom:1px solid var(--border); font-size:0.86rem;}
+  .priority-row:last-child{border-bottom:none;}
+  .priority-row .muted{margin-left:auto;}
+
+  @media (max-width:900px){ .charts-row{grid-template-columns:1fr;} }
+
+  /* ---------- Edital (Kanban) ---------- */
+  .edital-progress-row{display:flex; align-items:center; gap:0.75rem; margin-bottom:1.25rem; background:var(--bg-elev); border:1px solid var(--border); padding:0.9rem 1.1rem; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm);}
+  #edital-progress-label{font-size:0.8rem; color:var(--text-muted); white-space:nowrap; font-weight:600;}
+  .edital-columns{display:flex; gap:1rem; overflow-x:auto; padding-bottom:1rem;}
+  .disc-column{
+    flex:0 0 300px; background:var(--bg-elev); border:1px solid var(--border); border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-sm); display:flex; flex-direction:column; max-height:74vh;
+    border-top:4px solid var(--disc-color,#94a3b8);
+  }
+  .disc-header{display:flex; align-items:center; gap:0.5rem; padding:0.85rem 0.9rem 0.6rem; flex-wrap:wrap;}
+  .disc-header h3{font-size:0.9rem; margin:0; font-weight:700; flex:1; min-width:0; overflow-wrap:break-word;}
+  .disc-menu{display:flex; align-items:center; gap:0.15rem; width:100%; margin-top:0.4rem; flex-wrap:wrap;}
+  .merge-select{width:auto; flex:1; min-width:90px; font-size:0.72rem; padding:0.25rem 0.35rem; margin-bottom:0;}
+  .disc-body{overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:0.55rem; padding:0.2rem 0.75rem 0.9rem;}
+  .disc-body.drag-over{background:var(--accent-soft); border-radius:var(--radius-md);}
+  .topico-card{background:var(--bg-sunken); border-radius:var(--radius-md); padding:0.6rem 0.65rem; cursor:grab; border:1px solid transparent;}
+  .topico-card.dragging{opacity:0.4;}
+  .topico-card:hover{border-color:var(--border);}
+  .topico-top{display:flex; align-items:flex-start; gap:0.4rem;}
+  .topico-check{width:auto; margin:0.15rem 0 0; flex:0 0 auto;}
+  .topico-nome{font-size:0.82rem; font-weight:600; flex:1; cursor:pointer; line-height:1.35;}
+  .prio-flag{color:#f59e0b; font-size:0.8rem;}
+  .status-track{display:flex; gap:0.28rem; margin:0.5rem 0 0.35rem;}
+  .status-dot{width:100%; height:6px; border-radius:999px; border:none; padding:0; background:var(--border); cursor:pointer;}
+  .status-dot.filled{background:var(--disc-color,var(--accent));}
+  .topico-meta{display:flex; align-items:center; justify-content:space-between; gap:0.4rem;}
+  .status-label{font-size:0.68rem; color:var(--text-muted); font-weight:600;}
+
+  .selection-bar{
+    position:fixed; bottom:1.25rem; left:50%; transform:translateX(-50%); background:var(--bg-elev);
+    border:1px solid var(--border); box-shadow:var(--shadow-md); border-radius:var(--radius-lg);
+    padding:0.7rem 0.9rem; display:flex; align-items:center; gap:0.55rem; z-index:30; flex-wrap:wrap; max-width:92vw;
+  }
+  .selection-bar select{width:auto; margin-bottom:0;}
+  #selection-count{font-size:0.82rem; font-weight:700;}
+
+  /* ---------- Ciclo ---------- */
+  .cycle-select-wrap{display:flex; align-items:center; gap:0.4rem;}
+  .cycle-select-wrap select{width:auto; margin-bottom:0;}
+  .ciclo-progress-row{background:var(--bg-elev); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); padding:0.9rem 1.1rem; margin-bottom:1.25rem;}
+  .progress-mini{display:flex; align-items:center; gap:0.75rem; font-size:0.8rem; color:var(--text-muted); font-weight:600;}
+
+  .study-mode-card{
+    background:var(--bg-elev); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-md);
+    padding:1.4rem; margin-bottom:1.5rem; border-top:4px solid var(--disc-color,#94a3b8);
+  }
+  .study-header{display:flex; align-items:center; gap:0.7rem; margin-bottom:1rem;}
+  .study-label{font-size:0.72rem; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); font-weight:700;}
+  .study-header h2{margin:0.1rem 0 0; font-size:1.3rem;}
+  .study-header .badge{margin-left:auto;}
+  .timer-display{font-size:3.2rem; font-weight:800; text-align:center; font-variant-numeric:tabular-nums; letter-spacing:0.02em; margin:0.5rem 0 1rem; font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;}
+  .timer-display.time-up{color:var(--danger);}
+  .timer-controls{display:flex; gap:0.5rem; justify-content:center; margin-bottom:0.9rem;}
+  .cycle-done{text-align:center; padding:1.5rem 0.5rem;}
+  .cycle-done p{font-size:1rem; margin-bottom:1rem;}
+
+  .ciclo-builder{background:var(--bg-elev); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); padding:1.2rem;}
+  .ciclo-builder h3{margin:0 0 0.85rem; font-size:0.95rem;}
+  .ciclo-item{
+    display:flex; align-items:center; gap:0.6rem; padding:0.55rem 0.65rem; background:var(--bg-sunken);
+    border-radius:var(--radius-md); margin-bottom:0.5rem; border-left:4px solid var(--disc-color,#94a3b8); cursor:grab;
+  }
+  .ciclo-item.dragging{opacity:0.4;}
+  .drag-handle{color:var(--text-muted); font-size:0.85rem; cursor:grab;}
+  .ciclo-item-nome{flex:1; font-size:0.85rem; font-weight:600;}
+  .item-minutos{width:64px; margin-bottom:0; padding:0.3rem 0.4rem; text-align:center;}
+  .unit{font-size:0.72rem; color:var(--text-muted);}
+  .status-chip{font-size:0.66rem; font-weight:700; padding:0.15rem 0.5rem; border-radius:999px; background:var(--bg); border:1px solid var(--border); white-space:nowrap;}
+  .status-chip.status-em_andamento{color:var(--accent); border-color:var(--accent);}
+  .status-chip.status-concluido{color:#16a34a; border-color:#16a34a;}
+  .add-ciclo-item-row{display:flex; gap:0.5rem; margin-top:0.8rem; align-items:center;}
+  .add-ciclo-item-row select{margin-bottom:0;}
+  .add-ciclo-item-row input{width:90px; margin-bottom:0;}
+
+  /* ---------- Sessões ---------- */
+  .table-wrap{background:var(--bg-elev); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); overflow:auto;}
+  .data-table{width:100%; border-collapse:collapse; font-size:0.83rem;}
+  .data-table th{text-align:left; padding:0.75rem 0.9rem; background:var(--bg-sunken); color:var(--text-muted); font-weight:700; font-size:0.72rem; text-transform:uppercase; letter-spacing:.03em; white-space:nowrap;}
+  .data-table td{padding:0.65rem 0.9rem; border-top:1px solid var(--border); white-space:nowrap;}
+  .data-table td:nth-child(3){white-space:normal; min-width:220px;}
+
+  /* ---------- Config ---------- */
+  .config-card{background:var(--bg-elev); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); padding:1.3rem; margin-bottom:1.1rem; max-width:560px;}
+  .config-card h3{margin:0 0 0.4rem; font-size:0.95rem;}
+  .config-actions{display:flex; gap:0.6rem; margin-top:1rem; flex-wrap:wrap;}
+  .danger-zone{border-color:var(--danger);}
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{position:fixed; inset:0; background:rgba(15,23,42,0.5); display:flex; align-items:center; justify-content:center; z-index:100; padding:1rem;}
+  .modal{background:var(--bg-elev); border-radius:var(--radius-lg); padding:1.4rem; width:100%; max-width:420px; box-shadow:var(--shadow-md); max-height:90vh; overflow-y:auto;}
+  .modal h3{margin:0 0 1rem; font-size:1.05rem;}
+  .modal-actions{display:flex; align-items:center; justify-content:space-between; gap:0.5rem; margin-top:0.5rem;}
+  .modal-actions > div{display:flex; gap:0.5rem;}
+
+  /* ---------- Toast ---------- */
+  .toast{
+    position:fixed; bottom:1.5rem; right:1.5rem; background:var(--text); color:var(--bg);
+    padding:0.65rem 1.1rem; border-radius:var(--radius-md); font-size:0.85rem; font-weight:600;
+    box-shadow:var(--shadow-md); opacity:0; transform:translateY(8px); pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease; z-index:200; max-width:320px;
+  }
+  .toast.show{opacity:1; transform:translateY(0);}
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:820px){
+    .sidebar{position:fixed; left:0; top:0; transform:translateX(-100%); box-shadow:var(--shadow-md);}
+    .sidebar.open{transform:translateX(0);}
+    .mobile-menu-btn{display:inline-block;}
+    .main-content{padding:1rem 1rem 4rem;}
+    .stat-cards{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="logo-dot"></span>
+      <h1>Ciclo de Estudos</h1>
+      <button class="icon-btn" id="sidebar-toggle" title="Recolher menu">☰</button>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-link active" data-view="dashboard"><span class="nav-icon">◧</span><span>Dashboard</span></a>
+      <a href="#" class="nav-link" data-view="edital"><span class="nav-icon">▤</span><span>Edital</span></a>
+      <a href="#" class="nav-link" data-view="ciclo"><span class="nav-icon">◔</span><span>Ciclo de Estudos</span></a>
+      <a href="#" class="nav-link" data-view="sessoes"><span class="nav-icon">≣</span><span>Sessões</span></a>
+      <a href="#" class="nav-link" data-view="config"><span class="nav-icon">⚙</span><span>Backup</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <label class="theme-switch">
+        <input type="checkbox" id="dark-toggle" style="width:auto; margin:0;">
+        <span>Modo escuro</span>
+      </label>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <button class="mobile-menu-btn" id="mobile-menu-btn">☰ Menu</button>
+
+    <div id="view-dashboard" class="view active">
+      <div class="view-header"><h2>Dashboard</h2></div>
+      <div class="stat-cards">
+        <div class="stat-card">
+          <span class="stat-label">Edital coberto</span>
+          <div class="ring-wrap">
+            <svg viewBox="0 0 100 100" class="progress-ring">
+              <circle class="ring-bg" cx="50" cy="50" r="42"></circle>
+              <circle class="ring-fill" id="edital-ring" cx="50" cy="50" r="42"></circle>
+            </svg>
+            <span class="ring-value" id="edital-ring-value">0%</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Matéria atual do ciclo</span>
+          <div class="current-subject" id="current-subject">—</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Taxa de acerto</span>
+          <span class="big-number" id="accuracy-number">0%</span>
+          <span class="stat-sub" id="accuracy-sub"></span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Sessões registradas</span>
+          <span class="big-number" id="sessions-number">0</span>
+        </div>
+      </div>
+      <div class="charts-row">
+        <div class="chart-card"><h3>Acertos x erros</h3><canvas id="chart-accuracy"></canvas></div>
+        <div class="chart-card"><h3>Tempo estudado por disciplina (min)</h3><canvas id="chart-time"></canvas></div>
+      </div>
+      <div class="priority-list-card">
+        <h3>Tópicos de alta prioridade ainda não iniciados</h3>
+        <div id="priority-list"></div>
+      </div>
+    </div>
+
+    <div id="view-edital" class="view">
+      <div class="view-header">
+        <h2>Edital</h2>
+        <div class="view-header-actions">
+          <button class="btn-primary" data-action="add-disciplina">+ Nova disciplina</button>
+        </div>
+      </div>
+      <div class="edital-progress-row">
+        <span style="font-size:0.8rem; font-weight:700; white-space:nowrap;">Progresso geral</span>
+        <div class="progress-bar"><div class="progress-fill" id="edital-progress-fill" style="width:0%"></div></div>
+        <span id="edital-progress-label">0%</span>
+      </div>
+      <div class="edital-columns" id="edital-columns"></div>
+    </div>
+
+    <div id="view-ciclo" class="view">
+      <div class="view-header">
+        <h2>Ciclo de Estudos</h2>
+        <div class="cycle-select-wrap">
+          <select id="ciclo-select"></select>
+          <button class="icon-btn danger" data-action="delete-ciclo" title="Excluir ciclo selecionado">🗑</button>
+          <button class="btn-secondary" data-action="new-ciclo">+ Novo ciclo</button>
+        </div>
+      </div>
+      <div class="ciclo-progress-row">
+        <div class="progress-mini">
+          <span>Progresso da rodada atual</span>
+          <div class="progress-bar"><div class="progress-fill" id="ciclo-progress-fill" style="width:0%"></div></div>
+          <span id="ciclo-progress-label">0%</span>
+        </div>
+      </div>
+      <div class="study-mode-card" id="study-mode-card"></div>
+      <div class="ciclo-builder">
+        <h3>Sequência do ciclo</h3>
+        <div id="ciclo-itens-list"></div>
+        <div class="add-ciclo-item-row">
+          <select id="add-item-disciplina"></select>
+          <input type="number" id="add-item-minutos" min="5" step="5" value="30">
+          <button class="btn-primary" data-action="add-ciclo-item">Adicionar ao ciclo</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-sessoes" class="view">
+      <div class="view-header"><h2>Histórico de Sessões</h2></div>
+      <div class="table-wrap">
+        <table class="data-table" id="sessoes-table">
+          <thead><tr><th>Data</th><th>Disciplina</th><th>Tópico</th><th>Duração</th><th>Questões</th><th>Acertos</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="view-config" class="view">
+      <div class="view-header"><h2>Backup e Configurações</h2></div>
+      <div class="config-card">
+        <h3>Backup local</h3>
+        <p class="muted">Seus dados ficam salvos automaticamente neste navegador (IndexedDB). Exporte um arquivo .sqlite periodicamente para ter uma cópia de segurança, ou para levar seus dados para outro navegador/computador.</p>
+        <div class="config-actions">
+          <button class="btn-primary" data-action="export-db">Exportar backup (.sqlite)</button>
+          <label class="btn-secondary file-label">Importar backup<input type="file" id="import-file" accept=".sqlite,.db" hidden></label>
+        </div>
+      </div>
+      <div class="config-card danger-zone">
+        <h3>Zona de risco</h3>
+        <p class="muted">Apaga permanentemente todos os dados salvos neste navegador e restaura o edital de exemplo.</p>
+        <div class="config-actions">
+          <button class="btn-danger" data-action="reset-db">Apagar tudo e reiniciar</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal" id="modal-box"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.13.0/sql-wasm.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
+  <script>
+  (function(){
+    "use strict";
+
+    /* =====================================================================
+       CONSTANTES / SCHEMA / SEED
+    ===================================================================== */
+    var SCHEMA_SQL = [
+      "CREATE TABLE disciplinas (",
+      "  id INTEGER PRIMARY KEY AUTOINCREMENT,",
+      "  nome TEXT NOT NULL,",
+      "  cor_hex TEXT NOT NULL DEFAULT '#93c5fd',",
+      "  ordem INTEGER NOT NULL DEFAULT 0",
+      ");",
+      "CREATE TABLE topicos (",
+      "  id INTEGER PRIMARY KEY AUTOINCREMENT,",
+      "  disciplina_id INTEGER NOT NULL REFERENCES disciplinas(id) ON DELETE CASCADE,",
+      "  nome TEXT NOT NULL,",
+      "  status TEXT NOT NULL DEFAULT 'nao_iniciado',",
+      "  anotacoes TEXT DEFAULT '',",
+      "  prioridade INTEGER NOT NULL DEFAULT 2,",
+      "  criado_em TEXT NOT NULL",
+      ");",
+      "CREATE TABLE ciclos (",
+      "  id INTEGER PRIMARY KEY AUTOINCREMENT,",
+      "  nome TEXT NOT NULL,",
+      "  ativo INTEGER NOT NULL DEFAULT 0,",
+      "  criado_em TEXT NOT NULL",
+      ");",
+      "CREATE TABLE ciclo_itens (",
+      "  id INTEGER PRIMARY KEY AUTOINCREMENT,",
+      "  ciclo_id INTEGER NOT NULL REFERENCES ciclos(id) ON DELETE CASCADE,",
+      "  disciplina_id INTEGER NOT NULL REFERENCES disciplinas(id) ON DELETE CASCADE,",
+      "  tempo_alocado_minutos INTEGER NOT NULL DEFAULT 30,",
+      "  ordem INTEGER NOT NULL DEFAULT 0,",
+      "  status_atual TEXT NOT NULL DEFAULT 'pendente'",
+      ");",
+      "CREATE TABLE sessoes_estudo (",
+      "  id INTEGER PRIMARY KEY AUTOINCREMENT,",
+      "  topico_id INTEGER NOT NULL REFERENCES topicos(id) ON DELETE CASCADE,",
+      "  duracao_minutos INTEGER NOT NULL DEFAULT 0,",
+      "  questoes_feitas INTEGER NOT NULL DEFAULT 0,",
+      "  acertos INTEGER NOT NULL DEFAULT 0,",
+      "  data TEXT NOT NULL",
+      ");"
+    ].join("\n");
+
+    var STATUS_ORDER = ['nao_iniciado','teoria_lida','resumo_feito','questoes_praticadas','revisado'];
+    var STATUS_LABELS = {
+      nao_iniciado:'Não iniciado', teoria_lida:'Teoria lida', resumo_feito:'Resumo/Flashcard',
+      questoes_praticadas:'Questões praticadas', revisado:'Revisado'
+    };
+    var STATUS_SCORE = { nao_iniciado:0, teoria_lida:25, resumo_feito:50, questoes_praticadas:75, revisado:100 };
+
+    var PALETTE = ['#93c5fd','#c4b5fd','#fca5a5','#fdba74','#86efac','#67e8f9','#f9a8d4','#fde047','#a5b4fc','#5eead4','#fb923c','#d8b4fe','#7dd3fc'];
+
+    var SEED_DISCIPLINAS = [
+      { nome:'Arquitetura de Dados', cor:PALETTE[0], topicos:[
+        'Modelagem de dados (conceitual, lógica e física)','Criação e alteração de modelos lógico e físico',
+        'O modelo relacional','Normalização das estruturas de dados','Integridade referencial','Metadados',
+        'Modelagem dimensional','Avaliação de modelos de dados','Engenharia reversa de modelos de dados',
+        'Linguagem SQL','DDL (Linguagem de Definição de Dados)','DML (Linguagem de Manipulação de Dados)',
+        'SGBD (Sistema Gerenciador de Banco de Dados)','Propriedades ACID (atomicidade, consistência, isolamento, durabilidade)',
+        'Independência de dados','Transações de bancos de dados','Melhoria de performance de banco de dados',
+        'Bancos de dados NoSQL','Integração de dados (ETL, transferência de arquivos)','Banco de dados em memória',
+        'Qualidade de dados e dados mestres/referência','Data Lakes e soluções para Big Data',
+        'Bancos relacionais x multidimensionais x documentos x grafos'
+      ]},
+      { nome:'Gerenciamento de Projetos e Produtos', cor:PALETTE[1], topicos:[
+        'Scrum e Kanban','Gestão de projeto x gestão de produto','Práticas ágeis em escala e SAFe',
+        'PMBOK 7ª edição','Projetos e a organização','Escritório de projetos','Modelos e características de projetos'
+      ]},
+      { nome:'Processos e Grupos de Processos', cor:PALETTE[2], topicos:[
+        'Processos, grupos de processos e áreas de conhecimento'
+      ]},
+      { nome:'Gestão e Governança em TI', cor:PALETTE[3], topicos:[
+        'Conceitos, segmentos e mercado de TI','Economia da inovação','Conceitos e perspectivas da tecnologia',
+        'Ciência, pesquisa, desenvolvimento e indústria','Gerenciamento de serviços de TI','LGPD (Lei nº 13.709/2018)'
+      ]},
+      { nome:'Engenharia de Software', cor:PALETTE[4], topicos:[
+        'Levantamento e gestão de requisitos','Ciclo de vida de sistemas e paradigmas',
+        'Análise e projeto (estruturado e orientado a objetos)','Verificação, validação e teste',
+        'Ambientes de desenvolvimento de software'
+      ]},
+      { nome:'User Experience (UX)', cor:PALETTE[5], topicos:[
+        'Acessibilidade e usabilidade','Histórias do usuário','Interação em aplicações web',
+        'Projeto centrado no usuário','Storytelling com dados','Relatórios e dashboards',
+        'Interoperabilidade entre navegadores','MVP (Mínimo Produto Viável)','Prototipação',
+        'Design thinking','Análise de personas'
+      ]},
+      { nome:'Análise de Dados e Informações', cor:PALETTE[6], topicos:[
+        'Dado, informação, conhecimento e inteligência','Fundamentos de Business Intelligence (BI)',
+        'Mapeamento de fontes de dados','Dados estruturados e não estruturados','OLAP e suas operações',
+        'Data Warehouse','Modelagem multidimensional','Relatórios e dashboards em BI',
+        'Manipulação de dados em planilhas','Geração de insights a partir de dashboards',
+        'BI como suporte à tomada de decisão'
+      ]},
+      { nome:'Lógica Matemática', cor:PALETTE[7], topicos:[
+        'Conectivos lógicos','Argumentos','Lógica sentencial','Lógica de predicados de primeira ordem',
+        'Regras de formação de fórmulas','Sistemas dedutivos','Decidibilidade da lógica sentencial',
+        'Valores-verdade','Funções de avaliação'
+      ]},
+      { nome:'Segurança da Informação', cor:PALETTE[8], topicos:[
+        'Segurança física e lógica','Firewall, Proxy, IPS/IDS, DLP, CASB, SIEM, EDR, WAF',
+        'Softwares maliciosos (ransomware, vírus, worms, spyware)','Ataques (DDoS, SQL Injection, XSS, CSRF)',
+        'SAST/DAST/IAST e desenvolvimento seguro','VPN','MDM','SSO','MFA','RBAC e ABAC',
+        'Resposta a incidentes (NIST SP 800-61)','Threat intel e threat hunting','Testes de penetração',
+        'Modelagem de ameaças (STRIDE)','MITRE ATT&CK','ISO 31000, ISO 22301 e Sarbanes-Oxley',
+        'Políticas de segurança da informação','Classificação de informações',
+        'ISO 27002, criptografia e assinatura digital','Segurança em nuvem','Segurança em IoT'
+      ]},
+      { nome:'Português', cor:PALETTE[9], topicos:[
+        'Ortografia oficial','Acentuação gráfica','Sinais de pontuação','Crase','Flexão nominal e verbal',
+        'Pronomes: emprego, tratamento e colocação','Coesão textual','Tempos e modos verbais','Vozes do verbo',
+        'Concordância nominal e verbal','Regência nominal e verbal','Morfossintaxe',
+        'Redação (frases corretas/incorretas)','Compreensão e interpretação de textos','Tipos e gêneros textuais',
+        'Figuras de linguagem','Discurso direto, indireto e indireto livre','Adequação da linguagem ao documento'
+      ]},
+      { nome:'Engenharia de Dados', cor:PALETTE[10], topicos:[
+        'Dado, informação, conhecimento e inteligência (visão de engenharia)','Dados estruturados e não estruturados',
+        'Dados abertos','Coleta, tratamento e integração de dados','Banco de dados: conceitos básicos',
+        'Arquitetura de banco de dados','Estrutura de dados','Modelagem e normalização de dados',
+        'Ingestão e armazenamento de Big Data','Banco de dados NoSQL','Modelagem de dados (conceitual, lógica, física)',
+        'Abordagem relacional','Normalização das estruturas de dados (engenharia)','Integridade referencial (engenharia)',
+        'Modelagem dimensional (engenharia)','Linguagem SQL (engenharia)','DDL (engenharia)','DML (engenharia)',
+        'Administração de banco de dados','Arquitetura e políticas de armazenamento',
+        'Otimização de performance em larga escala','ETL/ELT e integração de dados'
+      ]},
+      { nome:'Análise de Dados', cor:PALETTE[11], topicos:[
+        'Banco de dados relacionais na análise de dados','Modelagem dimensional aplicada à análise',
+        'Mineração de dados: CRISP-DM','Pré-processamento de dados','Técnicas e tarefas de mineração de dados',
+        'Classificação','Regras de associação','Clusterização (análise de agrupamentos)','Detecção de anomalias',
+        'Modelagem preditiva','Mineração de texto','Visualização e análise exploratória de dados',
+        'Planilhas eletrônicas','Python e R para análise de dados','Ferramenta SAS'
+      ]},
+      { nome:'Inteligência Artificial', cor:PALETTE[12], topicos:[
+        'Fundamentos e aplicações de IA','Aprendizado de máquina','IA generativa','Redes neurais e deep learning',
+        'Processamento de linguagem natural (PLN)','MLOps e engenharia de sistemas de IA',
+        'Ética e responsabilidade em IA','Explicabilidade e interpretabilidade de modelos',
+        'Viés algorítmico e discriminação'
+      ]}
+    ];
+
+    /* =====================================================================
+       ESTADO GLOBAL
+    ===================================================================== */
+    var SQLNS = null;
+    var db = null;
+    var currentView = 'dashboard';
+    var persistTimer = null;
+    var toastTimer = null;
+    var accuracyChart = null;
+    var timeChart = null;
+    var timerState = { seconds:0, mode:'regressivo', running:false, intervalId:null, cicloItemId:null, minutosAlocados:30 };
+
+    /* =====================================================================
+       INDEXEDDB
+    ===================================================================== */
+    var IDB_NAME = 'cicloEstudosApp', IDB_STORE = 'kv';
+    function idbOpen(){
+      return new Promise(function(resolve, reject){
+        var req = indexedDB.open(IDB_NAME, 1);
+        req.onupgradeneeded = function(){ req.result.createObjectStore(IDB_STORE); };
+        req.onsuccess = function(){ resolve(req.result); };
+        req.onerror = function(){ reject(req.error); };
+      });
+    }
+    function idbGet(key){
+      return idbOpen().then(function(conn){
+        return new Promise(function(resolve, reject){
+          var tx = conn.transaction(IDB_STORE, 'readonly');
+          var rq = tx.objectStore(IDB_STORE).get(key);
+          rq.onsuccess = function(){ resolve(rq.result); };
+          rq.onerror = function(){ reject(rq.error); };
+        });
+      });
+    }
+    function idbSet(key, val){
+      return idbOpen().then(function(conn){
+        return new Promise(function(resolve, reject){
+          var tx = conn.transaction(IDB_STORE, 'readwrite');
+          var rq = tx.objectStore(IDB_STORE).put(val, key);
+          rq.onsuccess = function(){ resolve(true); };
+          rq.onerror = function(){ reject(rq.error); };
+        });
+      });
+    }
+
+    /* =====================================================================
+       CAMADA DE BANCO DE DADOS
+    ===================================================================== */
+    function all(sql, params){
+      var stmt = db.prepare(sql);
+      if(params) stmt.bind(params);
+      var rows = [];
+      while(stmt.step()){ rows.push(stmt.getAsObject()); }
+      stmt.free();
+      return rows;
+    }
+    function one(sql, params){
+      var r = all(sql, params);
+      return r.length ? r[0] : null;
+    }
+    function exec(sql, params){
+      db.run(sql, params || []);
+      schedulePersist();
+    }
+    function schedulePersist(){
+      if(persistTimer) clearTimeout(persistTimer);
+      persistTimer = setTimeout(persistNow, 500);
+    }
+    function persistNow(){
+      try{
+        var data = db.export();
+        return idbSet('sqlite_db', data);
+      }catch(e){ console.error('Erro ao salvar banco local:', e); }
+    }
+
+    function seedDatabase(){
+      var now = new Date();
+      SEED_DISCIPLINAS.forEach(function(d, idx){
+        db.run("INSERT INTO disciplinas (nome,cor_hex,ordem) VALUES (?,?,?)", [d.nome, d.cor, idx]);
+        var discId = one("SELECT last_insert_rowid() as id").id;
+        d.topicos.forEach(function(t, tidx){
+          var criado = new Date(now.getTime() - (d.topicos.length - tidx) * 3600000).toISOString();
+          db.run("INSERT INTO topicos (disciplina_id,nome,status,anotacoes,prioridade,criado_em) VALUES (?,?,?,?,?,?)",
+            [discId, t, 'nao_iniciado', '', 2, criado]);
+        });
+      });
+
+      // Seed zerado: só o edital real (disciplinas + tópicos) é inserido acima.
+      // Sem status pré-marcado, sem prioridade artificial, sem ciclo de exemplo,
+      // sem sessão de exemplo — todo tópico nasce 'nao_iniciado' com prioridade média (2).
+    }
+
+    function ensureActiveCiclo(){
+      var row = one("SELECT COUNT(*) as c FROM ciclos WHERE ativo=1");
+      if(row && row.c === 0){
+        var first = one("SELECT id FROM ciclos ORDER BY criado_em LIMIT 1");
+        if(first) db.run("UPDATE ciclos SET ativo=1 WHERE id=?", [first.id]);
+      }
+    }
+
+    /* =====================================================================
+       CONSULTAS DE NEGÓCIO
+    ===================================================================== */
+    function editalProgress(){
+      var rows = all("SELECT status FROM topicos");
+      if(!rows.length) return { pct:0, total:0, revisados:0 };
+      var sum = 0, revisados = 0;
+      rows.forEach(function(r){ sum += STATUS_SCORE[r.status] || 0; if(r.status === 'revisado') revisados++; });
+      return { pct: Math.round(sum / rows.length), total: rows.length, revisados: revisados };
+    }
+    function getCicloAtivo(){ return one("SELECT * FROM ciclos WHERE ativo=1 LIMIT 1"); }
+    function getCicloItens(cicloId){
+      return all("SELECT ci.*, d.nome as disciplina_nome, d.cor_hex as disciplina_cor FROM ciclo_itens ci " +
+        "JOIN disciplinas d ON d.id = ci.disciplina_id WHERE ci.ciclo_id=? ORDER BY ci.ordem", [cicloId]);
+    }
+    function getCurrentCicloItem(cicloId){
+      var itens = getCicloItens(cicloId);
+      var cur = itens.filter(function(i){ return i.status_atual === 'em_andamento'; })[0];
+      if(!cur) cur = itens.filter(function(i){ return i.status_atual === 'pendente'; })[0];
+      return cur || null;
+    }
+    function cicloProgress(cicloId){
+      var itens = all("SELECT status_atual FROM ciclo_itens WHERE ciclo_id=?", [cicloId]);
+      if(!itens.length) return { pct:0 };
+      var conc = itens.filter(function(i){ return i.status_atual === 'concluido'; }).length;
+      return { pct: Math.round(conc / itens.length * 100) };
+    }
+    function accuracyStats(){
+      var r = one("SELECT COUNT(*) as cnt, COALESCE(SUM(questoes_feitas),0) as q, COALESCE(SUM(acertos),0) as a FROM sessoes_estudo");
+      var pct = r.q ? Math.round(r.a / r.q * 100) : 0;
+      return { pct:pct, questoes:r.q, acertos:r.a, sessoesCount:r.cnt };
+    }
+    function timeByDisciplina(){
+      return all("SELECT d.nome as nome, d.cor_hex as cor, COALESCE(SUM(s.duracao_minutos),0) as minutos " +
+        "FROM disciplinas d LEFT JOIN topicos t ON t.disciplina_id=d.id " +
+        "LEFT JOIN sessoes_estudo s ON s.topico_id=t.id GROUP BY d.id ORDER BY minutos DESC");
+    }
+    function mergeDisciplinas(sourceId, targetId){
+      exec("UPDATE topicos SET disciplina_id=? WHERE disciplina_id=?", [targetId, sourceId]);
+      exec("UPDATE ciclo_itens SET disciplina_id=? WHERE disciplina_id=?", [targetId, sourceId]);
+      var dupGroups = all("SELECT ciclo_id, MIN(id) as keep_id, COUNT(*) as cnt, SUM(tempo_alocado_minutos) as total " +
+        "FROM ciclo_itens WHERE disciplina_id=? GROUP BY ciclo_id HAVING cnt>1", [targetId]);
+      dupGroups.forEach(function(g){
+        exec("UPDATE ciclo_itens SET tempo_alocado_minutos=? WHERE id=?", [g.total, g.keep_id]);
+        exec("DELETE FROM ciclo_itens WHERE ciclo_id=? AND disciplina_id=? AND id != ?", [g.ciclo_id, targetId, g.keep_id]);
+      });
+      exec("DELETE FROM disciplinas WHERE id=?", [sourceId]);
+    }
+
+    /* =====================================================================
+       HELPERS DE UI
+    ===================================================================== */
+    function esc(s){
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+        return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+      });
+    }
+    function formatTime(sec){
+      sec = Math.max(0, sec);
+      var m = Math.floor(sec / 60).toString().padStart(2,'0');
+      var s = Math.floor(sec % 60).toString().padStart(2,'0');
+      return m + ':' + s;
+    }
+    function formatDate(iso){
+      var d = new Date(iso);
+      return d.toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' +
+             d.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+    }
+    function showToast(msg){
+      var t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      if(toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+    }
+    function openModal(html){
+      document.getElementById('modal-box').innerHTML = html;
+      document.getElementById('modal-overlay').classList.remove('hidden');
+    }
+    function closeModal(){
+      document.getElementById('modal-overlay').classList.add('hidden');
+      document.getElementById('modal-box').innerHTML = '';
+    }
+    function confirmAction(message, onConfirm, onCancel){
+      openModal(
+        '<h3>Confirmar ação</h3><p class="muted" style="font-size:0.88rem;">' + esc(message) + '</p>' +
+        '<div class="modal-actions"><span></span><div>' +
+        '<button class="btn-secondary" id="modal-cancel">Cancelar</button>' +
+        '<button class="btn-danger" id="modal-confirm">Confirmar</button></div></div>'
+      );
+      document.getElementById('modal-confirm').onclick = function(){ closeModal(); onConfirm(); };
+      document.getElementById('modal-cancel').onclick = function(){ closeModal(); if(onCancel) onCancel(); };
+    }
+    function populateDisciplinaSelect(selectEl, excludeId){
+      var rows = all("SELECT id,nome FROM disciplinas ORDER BY nome");
+      selectEl.innerHTML = rows.filter(function(r){ return r.id !== excludeId; })
+        .map(function(r){ return '<option value="' + r.id + '">' + esc(r.nome) + '</option>'; }).join('');
+    }
+
+    /* =====================================================================
+       ROTEAMENTO
+    ===================================================================== */
+    function navigate(view){
+      currentView = view;
+      document.querySelectorAll('.view').forEach(function(v){ v.classList.toggle('active', v.id === 'view-' + view); });
+      document.querySelectorAll('.nav-link').forEach(function(a){ a.classList.toggle('active', a.dataset.view === view); });
+      if(view === 'dashboard') renderDashboard();
+      else if(view === 'edital') renderEdital();
+      else if(view === 'ciclo') renderCiclo();
+      else if(view === 'sessoes') renderSessoes();
+      document.getElementById('sidebar').classList.remove('open');
+    }
+    function renderDashboardIfActive(){ if(currentView === 'dashboard') renderDashboard(); }
+    function renderAll(){ renderDashboard(); renderEdital(); renderCiclo(); renderSessoes(); }
+
+    /* =====================================================================
+       DASHBOARD
+    ===================================================================== */
+    function renderDashboard(){
+      var prog = editalProgress();
+      document.getElementById('edital-ring-value').textContent = prog.pct + '%';
+      var circumference = 2 * Math.PI * 42;
+      var ring = document.getElementById('edital-ring');
+      ring.style.strokeDasharray = String(circumference);
+      ring.style.strokeDashoffset = String(circumference * (1 - prog.pct / 100));
+
+      var cicloAtivo = getCicloAtivo();
+      var curEl = document.getElementById('current-subject');
+      if(cicloAtivo){
+        var cur = getCurrentCicloItem(cicloAtivo.id);
+        curEl.innerHTML = cur
+          ? '<span class="disc-dot" style="--disc-color:' + cur.disciplina_cor + '"></span> ' + esc(cur.disciplina_nome)
+          : 'Ciclo concluído 🎉';
+      } else {
+        curEl.textContent = 'Nenhum ciclo ativo';
+      }
+
+      var acc = accuracyStats();
+      document.getElementById('accuracy-number').textContent = acc.pct + '%';
+      document.getElementById('accuracy-sub').textContent = acc.acertos + '/' + acc.questoes + ' questões';
+      document.getElementById('sessions-number').textContent = acc.sessoesCount;
+
+      renderCharts(acc, timeByDisciplina());
+      renderPriorityList();
+    }
+
+    function renderCharts(acc, timeData){
+      var isDark = document.documentElement.classList.contains('dark');
+      var textColor = isDark ? '#94a3b8' : '#64748b';
+      var gridColor = isDark ? '#334155' : '#e2e8f0';
+
+      var ctx1 = document.getElementById('chart-accuracy');
+      if(accuracyChart) accuracyChart.destroy();
+      accuracyChart = new Chart(ctx1, {
+        type:'doughnut',
+        data:{ labels:['Acertos','Erros'], datasets:[{ data:[acc.acertos, Math.max(acc.questoes - acc.acertos,0)], backgroundColor:['#6366f1','#e2e8f0'], borderWidth:0 }] },
+        options:{ plugins:{ legend:{ position:'bottom', labels:{ color:textColor } } }, cutout:'70%', maintainAspectRatio:true }
+      });
+
+      var ctx2 = document.getElementById('chart-time');
+      if(timeChart) timeChart.destroy();
+      var filtered = timeData.filter(function(d){ return d.minutos > 0; });
+      var dataForChart = filtered.length ? filtered : timeData.slice(0,5);
+      timeChart = new Chart(ctx2, {
+        type:'bar',
+        data:{ labels: dataForChart.map(function(d){ return d.nome; }),
+               datasets:[{ data: dataForChart.map(function(d){ return d.minutos; }), backgroundColor: dataForChart.map(function(d){ return d.cor; }), borderRadius:4 }] },
+        options:{ indexAxis:'y', plugins:{ legend:{ display:false } },
+                  scales:{ x:{ beginAtZero:true, ticks:{ color:textColor }, grid:{ color:gridColor } },
+                           y:{ ticks:{ color:textColor, font:{ size:10 } }, grid:{ display:false } } },
+                  maintainAspectRatio:true }
+      });
+    }
+
+    function renderPriorityList(){
+      var rows = all("SELECT t.*, d.nome as disciplina_nome, d.cor_hex as disciplina_cor FROM topicos t " +
+        "JOIN disciplinas d ON d.id=t.disciplina_id WHERE t.status='nao_iniciado' AND t.prioridade=3 " +
+        "ORDER BY t.criado_em LIMIT 8");
+      var el = document.getElementById('priority-list');
+      el.innerHTML = rows.length ? rows.map(function(r){
+        return '<div class="priority-row"><span class="disc-dot" style="--disc-color:' + r.disciplina_cor + '"></span>' +
+          '<span>' + esc(r.nome) + '</span><span class="muted">' + esc(r.disciplina_nome) + '</span></div>';
+      }).join('') : '<p class="empty-hint">Nenhum tópico de alta prioridade pendente. 🎉</p>';
+    }
+
+    /* =====================================================================
+       EDITAL
+    ===================================================================== */
+    function renderEdital(){
+      var disciplinas = all("SELECT * FROM disciplinas ORDER BY ordem, nome");
+      var cicloAtivo = getCicloAtivo();
+      var cicloDisciplinaIds = {};
+      if(cicloAtivo){
+        getCicloItens(cicloAtivo.id).forEach(function(i){ cicloDisciplinaIds[i.disciplina_id] = true; });
+      }
+      var container = document.getElementById('edital-columns');
+      container.innerHTML = disciplinas.map(function(d){ return renderDisciplinaColumn(d, cicloDisciplinaIds); }).join('');
+
+      var prog = editalProgress();
+      document.getElementById('edital-progress-fill').style.width = prog.pct + '%';
+      document.getElementById('edital-progress-label').textContent = prog.pct + '% concluído · ' + prog.revisados + '/' + prog.total + ' tópicos revisados';
+
+      var bulkSelect = document.getElementById('bulk-target-disc');
+      if(bulkSelect) populateDisciplinaSelect(bulkSelect);
+
+      wireEditalDnD();
+      clearSelectionUI();
+    }
+
+    function renderDisciplinaColumn(d, cicloIds){
+      var topicos = all("SELECT * FROM topicos WHERE disciplina_id=? ORDER BY prioridade DESC, criado_em", [d.id]);
+      var inCiclo = !!cicloIds[d.id];
+      var allDisc = all("SELECT id,nome FROM disciplinas WHERE id != ? ORDER BY nome", [d.id]);
+      var mergeOptions = allDisc.map(function(o){ return '<option value="' + o.id + '">' + esc(o.nome) + '</option>'; }).join('');
+      var body = topicos.map(renderTopicoCard).join('') || '<p class="empty-hint">Sem tópicos. Arraste um tópico aqui ou adicione um novo.</p>';
+      return (
+        '<div class="disc-column" style="--disc-color:' + d.cor_hex + '">' +
+          '<div class="disc-header">' +
+            '<span class="disc-dot"></span>' +
+            '<h3>' + esc(d.nome) + '</h3>' +
+            '<span class="badge ' + (inCiclo ? 'badge-active' : 'badge-backlog') + '">' + (inCiclo ? 'No ciclo' : 'Backlog') + '</span>' +
+            '<div class="disc-menu">' +
+              '<button class="icon-btn" data-action="rename-disc" data-id="' + d.id + '" title="Renomear/cor">✏️</button>' +
+              '<button class="icon-btn" data-action="add-topico" data-id="' + d.id + '" title="Novo tópico">＋</button>' +
+              '<select class="merge-select" data-action="merge-disc" data-id="' + d.id + '"><option value="">Mesclar com…</option>' + mergeOptions + '</select>' +
+              '<button class="icon-btn danger" data-action="delete-disc" data-id="' + d.id + '" title="Excluir disciplina">🗑</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="disc-body dropzone" data-disc-id="' + d.id + '">' + body + '</div>' +
+        '</div>'
+      );
+    }
+
+    function renderTopicoCard(t){
+      var dotsHtml = STATUS_ORDER.map(function(s){
+        var filled = STATUS_ORDER.indexOf(t.status) >= STATUS_ORDER.indexOf(s);
+        return '<button class="status-dot ' + (filled ? 'filled' : '') + '" data-action="set-status" data-id="' + t.id + '" data-status="' + s + '" title="' + STATUS_LABELS[s] + '"></button>';
+      }).join('');
+      return (
+        '<div class="topico-card" draggable="true" data-topico-id="' + t.id + '">' +
+          '<div class="topico-top">' +
+            '<input type="checkbox" class="topico-check" data-id="' + t.id + '">' +
+            '<span class="topico-nome" data-action="edit-topico" data-id="' + t.id + '">' + esc(t.nome) + '</span>' +
+            (t.prioridade >= 3 ? '<span class="prio-flag" title="Alta prioridade">★</span>' : '') +
+          '</div>' +
+          '<div class="status-track">' + dotsHtml + '</div>' +
+          '<div class="topico-meta">' +
+            '<span class="status-label">' + STATUS_LABELS[t.status] + '</span>' +
+            '<button class="icon-btn tiny" data-action="delete-topico" data-id="' + t.id + '" title="Excluir">×</button>' +
+          '</div>' +
+        '</div>'
+      );
+    }
+
+    function wireEditalDnD(){
+      document.querySelectorAll('.topico-card').forEach(function(card){
+        card.addEventListener('dragstart', function(e){
+          e.dataTransfer.setData('text/plain', card.dataset.topicoId);
+          card.classList.add('dragging');
+        });
+        card.addEventListener('dragend', function(){ card.classList.remove('dragging'); });
+      });
+      document.querySelectorAll('.dropzone').forEach(function(zone){
+        zone.addEventListener('dragover', function(e){ e.preventDefault(); zone.classList.add('drag-over'); });
+        zone.addEventListener('dragleave', function(){ zone.classList.remove('drag-over'); });
+        zone.addEventListener('drop', function(e){
+          e.preventDefault();
+          zone.classList.remove('drag-over');
+          var topicoId = parseInt(e.dataTransfer.getData('text/plain'), 10);
+          var discId = parseInt(zone.dataset.discId, 10);
+          if(topicoId && discId){
+            exec("UPDATE topicos SET disciplina_id=? WHERE id=?", [discId, topicoId]);
+            renderEdital();
+            renderDashboardIfActive();
+          }
+        });
+      });
+    }
+
+    function updateSelectionBar(){
+      var checked = Array.prototype.slice.call(document.querySelectorAll('.topico-check:checked')).map(function(c){ return parseInt(c.dataset.id,10); });
+      var bar = document.getElementById('selection-bar');
+      if(!bar) return;
+      if(checked.length === 0){ bar.classList.add('hidden'); return; }
+      bar.classList.remove('hidden');
+      document.getElementById('selection-count').textContent = checked.length + ' selecionado(s)';
+      bar.dataset.ids = JSON.stringify(checked);
+    }
+    function clearSelectionUI(){
+      var bar = document.getElementById('selection-bar');
+      if(bar){ bar.classList.add('hidden'); bar.dataset.ids = '[]'; }
+    }
+
+    function openDisciplinaModal(id){
+      var d = id ? one("SELECT * FROM disciplinas WHERE id=?", [id]) : null;
+      var defaultColor = d ? d.cor_hex : PALETTE[Math.floor(Math.random() * PALETTE.length)];
+      openModal(
+        '<h3>' + (d ? 'Editar disciplina' : 'Nova disciplina') + '</h3>' +
+        '<label>Nome</label><input type="text" id="f-nome" value="' + (d ? esc(d.nome) : '') + '">' +
+        '<label>Cor</label><input type="color" id="f-cor" value="' + defaultColor + '">' +
+        '<div class="modal-actions"><span></span><div>' +
+        '<button class="btn-secondary" id="modal-cancel">Cancelar</button>' +
+        '<button class="btn-primary" id="modal-save">Salvar</button></div></div>'
+      );
+      document.getElementById('modal-cancel').onclick = closeModal;
+      document.getElementById('modal-save').onclick = function(){
+        var nome = document.getElementById('f-nome').value.trim();
+        var cor = document.getElementById('f-cor').value;
+        if(!nome){ showToast('Informe um nome.'); return; }
+        if(d){
+          exec("UPDATE disciplinas SET nome=?,cor_hex=? WHERE id=?", [nome, cor, id]);
+        } else {
+          var maxOrdem = one("SELECT COALESCE(MAX(ordem),-1) as m FROM disciplinas").m;
+          exec("INSERT INTO disciplinas (nome,cor_hex,ordem) VALUES (?,?,?)", [nome, cor, maxOrdem + 1]);
+        }
+        closeModal(); renderEdital(); renderCiclo(); renderDashboardIfActive();
+      };
+    }
+
+    function openTopicoModal(id, discIdForNew){
+      var t = id ? one("SELECT * FROM topicos WHERE id=?", [id]) : null;
+      var discId = t ? t.disciplina_id : discIdForNew;
+      var statusSelect = t ? (
+        '<label>Status</label><select id="f-status">' +
+        STATUS_ORDER.map(function(s){ return '<option value="' + s + '" ' + (t.status === s ? 'selected' : '') + '>' + STATUS_LABELS[s] + '</option>'; }).join('') +
+        '</select>'
+      ) : '';
+      openModal(
+        '<h3>' + (t ? 'Editar tópico' : 'Novo tópico') + '</h3>' +
+        '<label>Nome</label><input type="text" id="f-nome" value="' + (t ? esc(t.nome) : '') + '">' +
+        '<label>Prioridade</label><select id="f-prioridade">' +
+          '<option value="1" ' + (t && t.prioridade === 1 ? 'selected' : '') + '>Baixa</option>' +
+          '<option value="2" ' + (!t || t.prioridade === 2 ? 'selected' : '') + '>Média</option>' +
+          '<option value="3" ' + (t && t.prioridade === 3 ? 'selected' : '') + '>Alta</option>' +
+        '</select>' +
+        statusSelect +
+        '<label>Anotações</label><textarea id="f-anotacoes" rows="4">' + (t ? esc(t.anotacoes || '') : '') + '</textarea>' +
+        '<div class="modal-actions">' +
+          (t ? '<button class="btn-danger" id="modal-delete">Excluir</button>' : '<span></span>') +
+          '<div><button class="btn-secondary" id="modal-cancel">Cancelar</button>' +
+          '<button class="btn-primary" id="modal-save">Salvar</button></div>' +
+        '</div>'
+      );
+      document.getElementById('modal-cancel').onclick = closeModal;
+      if(t){
+        document.getElementById('modal-delete').onclick = function(){
+          closeModal();
+          confirmAction('Excluir este tópico?', function(){
+            exec("DELETE FROM topicos WHERE id=?", [id]);
+            renderEdital(); renderDashboardIfActive();
+          });
+        };
+      }
+      document.getElementById('modal-save').onclick = function(){
+        var nome = document.getElementById('f-nome').value.trim();
+        if(!nome){ showToast('Informe um nome.'); return; }
+        var prioridade = parseInt(document.getElementById('f-prioridade').value, 10);
+        var anotacoes = document.getElementById('f-anotacoes').value;
+        if(t){
+          var status = document.getElementById('f-status').value;
+          exec("UPDATE topicos SET nome=?,prioridade=?,anotacoes=?,status=? WHERE id=?", [nome, prioridade, anotacoes, status, id]);
+        } else {
+          exec("INSERT INTO topicos (disciplina_id,nome,status,anotacoes,prioridade,criado_em) VALUES (?,?,?,?,?,?)",
+            [discId, nome, 'nao_iniciado', anotacoes, prioridade, new Date().toISOString()]);
+        }
+        closeModal(); renderEdital(); renderDashboardIfActive();
+      };
+    }
+
+    /* =====================================================================
+       CICLO DE ESTUDOS
+    ===================================================================== */
+    function renderCiclo(){
+      var ciclos = all("SELECT * FROM ciclos ORDER BY criado_em");
+      var select = document.getElementById('ciclo-select');
+      var addDiscSelect = document.getElementById('add-item-disciplina');
+
+      if(!ciclos.length){
+        select.innerHTML = '<option value="">Nenhum ciclo criado</option>';
+        document.getElementById('ciclo-itens-list').innerHTML = '<p class="empty-hint">Crie um ciclo para começar.</p>';
+        document.getElementById('study-mode-card').innerHTML = '<p class="empty-hint">Nenhum ciclo ativo.</p>';
+        document.getElementById('ciclo-progress-fill').style.width = '0%';
+        document.getElementById('ciclo-progress-label').textContent = '0%';
+        populateDisciplinaSelect(addDiscSelect);
+        return;
+      }
+
+      select.innerHTML = ciclos.map(function(c){
+        return '<option value="' + c.id + '" ' + (c.ativo ? 'selected' : '') + '>' + esc(c.nome) + (c.ativo ? ' (ativo)' : '') + '</option>';
+      }).join('');
+
+      var cicloAtivo = ciclos.filter(function(c){ return c.ativo; })[0] || ciclos[0];
+      var itens = getCicloItens(cicloAtivo.id);
+      document.getElementById('ciclo-itens-list').innerHTML = itens.length
+        ? itens.map(renderCicloItemRow).join('')
+        : '<p class="empty-hint">Nenhuma disciplina no ciclo ainda.</p>';
+
+      var prog = cicloProgress(cicloAtivo.id);
+      document.getElementById('ciclo-progress-fill').style.width = prog.pct + '%';
+      document.getElementById('ciclo-progress-label').textContent = prog.pct + '% concluído nesta rodada';
+
+      renderStudyModeCard(cicloAtivo);
+      populateDisciplinaSelect(addDiscSelect);
+      wireCicloDnD();
+    }
+
+    function renderCicloItemRow(it){
+      var statusLabel = { pendente:'Pendente', em_andamento:'Em andamento', concluido:'Concluído' }[it.status_atual];
+      return (
+        '<div class="ciclo-item" draggable="true" data-item-id="' + it.id + '" style="--disc-color:' + it.disciplina_cor + '">' +
+          '<span class="drag-handle">⋮⋮</span>' +
+          '<span class="disc-dot"></span>' +
+          '<span class="ciclo-item-nome">' + esc(it.disciplina_nome) + '</span>' +
+          '<input type="number" class="item-minutos" data-id="' + it.id + '" value="' + it.tempo_alocado_minutos + '" min="5" step="5"><span class="unit">min</span>' +
+          '<span class="status-chip status-' + it.status_atual + '">' + statusLabel + '</span>' +
+          '<button class="icon-btn tiny" data-action="remove-ciclo-item" data-id="' + it.id + '" title="Remover">×</button>' +
+        '</div>'
+      );
+    }
+
+    function renderStudyModeCard(cicloAtivo){
+      var card = document.getElementById('study-mode-card');
+      if(!cicloAtivo){ card.innerHTML = '<p class="empty-hint">Nenhum ciclo ativo.</p>'; return; }
+      var itens = getCicloItens(cicloAtivo.id);
+      if(!itens.length){ card.innerHTML = '<p class="empty-hint">Adicione disciplinas ao ciclo para iniciar o modo de estudo.</p>'; return; }
+
+      var cur = itens.filter(function(i){ return i.status_atual === 'em_andamento'; })[0];
+      if(!cur) cur = itens.filter(function(i){ return i.status_atual === 'pendente'; })[0];
+
+      if(!cur){
+        card.style.removeProperty('--disc-color');
+        card.innerHTML =
+          '<div class="cycle-done"><p>🎉 Ciclo concluído! Todas as disciplinas foram estudadas nesta rodada.</p>' +
+          '<button class="btn-primary" data-action="reiniciar-ciclo" data-id="' + cicloAtivo.id + '">Reiniciar ciclo</button></div>';
+        return;
+      }
+
+      if(cur.status_atual === 'pendente'){
+        exec("UPDATE ciclo_itens SET status_atual='em_andamento' WHERE id=?", [cur.id]);
+        cur.status_atual = 'em_andamento';
+      }
+
+      if(timerState.cicloItemId !== cur.id){
+        timerState.cicloItemId = cur.id;
+        timerState.mode = 'regressivo';
+        timerState.minutosAlocados = cur.tempo_alocado_minutos;
+        timerState.seconds = cur.tempo_alocado_minutos * 60;
+        timerState.running = false;
+        clearInterval(timerState.intervalId);
+      }
+
+      var topicosDaDisciplina = all("SELECT id,nome FROM topicos WHERE disciplina_id=? ORDER BY prioridade DESC, nome", [cur.disciplina_id]);
+      card.style.setProperty('--disc-color', cur.disciplina_cor);
+      card.innerHTML =
+        '<div class="study-header"><span class="disc-dot"></span>' +
+          '<div><span class="study-label">Estudando agora</span><h2>' + esc(cur.disciplina_nome) + '</h2></div>' +
+          '<span class="badge">' + cur.tempo_alocado_minutos + ' min alocados</span>' +
+        '</div>' +
+        '<div class="timer-display" id="timer-display">' + formatTime(timerState.seconds) + '</div>' +
+        '<div class="timer-controls">' +
+          '<button class="btn-secondary" data-action="timer-toggle-mode">' + (timerState.mode === 'regressivo' ? 'Modo progressivo' : 'Modo regressivo') + '</button>' +
+          '<button class="btn-primary" id="timer-play-pause" data-action="timer-play-pause">' + (timerState.running ? 'Pausar' : 'Iniciar') + '</button>' +
+          '<button class="btn-secondary" data-action="timer-reset">Zerar</button>' +
+        '</div>' +
+        '<button class="btn-primary full" data-action="registrar-sessao" data-item-id="' + cur.id + '" data-topicos=\'' + JSON.stringify(topicosDaDisciplina).replace(/'/g,"&#39;") + '\'>Registrar sessão e avançar</button>' +
+        '<div style="text-align:center;"><button class="btn-text" data-action="avancar-sem-registrar" data-item-id="' + cur.id + '">Avançar sem registrar</button></div>';
+    }
+
+    function refreshStudyModeCard(){
+      var cicloAtivo = getCicloAtivo();
+      if(cicloAtivo) renderStudyModeCard(cicloAtivo);
+    }
+
+    function updateTimerDisplay(){
+      var el = document.getElementById('timer-display');
+      if(!el) return;
+      el.textContent = formatTime(timerState.seconds);
+      el.classList.toggle('time-up', timerState.mode === 'regressivo' && timerState.seconds === 0);
+    }
+    function timerTick(){
+      if(timerState.mode === 'regressivo'){
+        timerState.seconds--;
+        if(timerState.seconds <= 0){
+          timerState.seconds = 0;
+          pauseTimer();
+          showToast('Tempo esgotado! Registre sua sessão ou continue estudando.');
+          refreshStudyModeCard();
+          return;
+        }
+      } else {
+        timerState.seconds++;
+      }
+      updateTimerDisplay();
+    }
+    function startTimer(){
+      if(timerState.running) return;
+      timerState.running = true;
+      timerState.intervalId = setInterval(timerTick, 1000);
+    }
+    function pauseTimer(){
+      timerState.running = false;
+      clearInterval(timerState.intervalId);
+    }
+    function resetTimer(minutosAlocados){
+      pauseTimer();
+      timerState.seconds = timerState.mode === 'regressivo' ? minutosAlocados * 60 : 0;
+      updateTimerDisplay();
+    }
+    function toggleTimerMode(minutosAlocados){
+      timerState.mode = timerState.mode === 'regressivo' ? 'progressivo' : 'regressivo';
+      resetTimer(minutosAlocados);
+    }
+
+    function openSessaoModal(cicloItemId, topicos){
+      var elapsedSec = timerState.mode === 'regressivo'
+        ? (timerState.minutosAlocados * 60 - timerState.seconds)
+        : timerState.seconds;
+      var duracaoDefault = Math.max(1, Math.round(elapsedSec / 60));
+      var options = topicos.length
+        ? topicos.map(function(t){ return '<option value="' + t.id + '">' + esc(t.nome) + '</option>'; }).join('')
+        : '<option value="">Nenhum tópico cadastrado nesta disciplina</option>';
+      openModal(
+        '<h3>Registrar sessão de estudo</h3>' +
+        '<label>Tópico estudado</label><select id="f-topico">' + options + '</select>' +
+        '<label>Duração (minutos)</label><input type="number" id="f-duracao" min="1" value="' + duracaoDefault + '">' +
+        '<label>Questões feitas</label><input type="number" id="f-questoes" min="0" value="0">' +
+        '<label>Acertos</label><input type="number" id="f-acertos" min="0" value="0">' +
+        '<div class="modal-actions"><span></span><div>' +
+        '<button class="btn-secondary" id="modal-cancel">Cancelar</button>' +
+        '<button class="btn-primary" id="modal-save">Salvar e avançar</button></div></div>'
+      );
+      document.getElementById('modal-cancel').onclick = closeModal;
+      document.getElementById('modal-save').onclick = function(){
+        var topicoId = parseInt(document.getElementById('f-topico').value, 10);
+        if(!topicoId){ showToast('Cadastre ao menos um tópico nesta disciplina antes de registrar.'); return; }
+        var duracao = parseInt(document.getElementById('f-duracao').value, 10) || 0;
+        var questoes = parseInt(document.getElementById('f-questoes').value, 10) || 0;
+        var acertos = parseInt(document.getElementById('f-acertos').value, 10) || 0;
+        if(acertos > questoes){ showToast('Acertos não pode ser maior que questões feitas.'); return; }
+        exec("INSERT INTO sessoes_estudo (topico_id,duracao_minutos,questoes_feitas,acertos,data) VALUES (?,?,?,?,?)",
+          [topicoId, duracao, questoes, acertos, new Date().toISOString()]);
+        closeModal();
+        avancarCiclo(cicloItemId);
+        showToast('Sessão registrada!');
+      };
+    }
+
+    function avancarCiclo(itemId){
+      exec("UPDATE ciclo_itens SET status_atual='concluido' WHERE id=?", [itemId]);
+      var item = one("SELECT * FROM ciclo_itens WHERE id=?", [itemId]);
+      var next = one("SELECT * FROM ciclo_itens WHERE ciclo_id=? AND status_atual='pendente' ORDER BY ordem LIMIT 1", [item.ciclo_id]);
+      if(next) exec("UPDATE ciclo_itens SET status_atual='em_andamento' WHERE id=?", [next.id]);
+      timerState.cicloItemId = null;
+      renderCiclo();
+      renderDashboardIfActive();
+    }
+
+    function wireCicloDnD(){
+      var list = document.getElementById('ciclo-itens-list');
+      if(!list) return;
+      document.querySelectorAll('.ciclo-item').forEach(function(item){
+        item.addEventListener('dragstart', function(){ item.classList.add('dragging'); });
+        item.addEventListener('dragend', function(){ item.classList.remove('dragging'); });
+      });
+      list.addEventListener('dragover', function(e){
+        e.preventDefault();
+        var dragging = list.querySelector('.dragging');
+        if(!dragging) return;
+        var afterEl = getDragAfterElement(list, e.clientY);
+        if(afterEl == null) list.appendChild(dragging);
+        else list.insertBefore(dragging, afterEl);
+      });
+      list.addEventListener('drop', function(e){
+        e.preventDefault();
+        var ids = Array.prototype.slice.call(list.querySelectorAll('.ciclo-item')).map(function(el){ return parseInt(el.dataset.itemId, 10); });
+        ids.forEach(function(id, idx){ exec("UPDATE ciclo_itens SET ordem=? WHERE id=?", [idx, id]); });
+        renderCiclo();
+      });
+    }
+    function getDragAfterElement(container, y){
+      var els = Array.prototype.slice.call(container.querySelectorAll('.ciclo-item:not(.dragging)'));
+      var result = { offset: -Infinity, element: null };
+      els.forEach(function(child){
+        var box = child.getBoundingClientRect();
+        var offset = y - box.top - box.height / 2;
+        if(offset < 0 && offset > result.offset){ result = { offset: offset, element: child }; }
+      });
+      return result.element;
+    }
+
+    function openNovoCicloModal(){
+      openModal(
+        '<h3>Novo ciclo de estudos</h3>' +
+        '<label>Nome do ciclo</label><input type="text" id="f-nome" value="Novo ciclo" placeholder="Ex: Ciclo pré-edital">' +
+        '<div class="modal-actions"><span></span><div>' +
+        '<button class="btn-secondary" id="modal-cancel">Cancelar</button>' +
+        '<button class="btn-primary" id="modal-save">Criar e ativar</button></div></div>'
+      );
+      document.getElementById('modal-cancel').onclick = closeModal;
+      document.getElementById('modal-save').onclick = function(){
+        var nome = document.getElementById('f-nome').value.trim() || 'Novo ciclo';
+        exec("UPDATE ciclos SET ativo=0");
+        exec("INSERT INTO ciclos (nome,ativo,criado_em) VALUES (?,1,?)", [nome, new Date().toISOString()]);
+        timerState.cicloItemId = null;
+        closeModal(); renderCiclo(); renderDashboardIfActive();
+      };
+    }
+
+    /* =====================================================================
+       SESSÕES
+    ===================================================================== */
+    function renderSessoes(){
+      var rows = all("SELECT s.*, t.nome as topico_nome, d.nome as disciplina_nome, d.cor_hex as disciplina_cor " +
+        "FROM sessoes_estudo s JOIN topicos t ON t.id=s.topico_id JOIN disciplinas d ON d.id=t.disciplina_id " +
+        "ORDER BY s.data DESC LIMIT 200");
+      var tbody = document.querySelector('#sessoes-table tbody');
+      tbody.innerHTML = rows.length ? rows.map(function(r){
+        return '<tr><td>' + formatDate(r.data) + '</td>' +
+          '<td><span class="disc-dot" style="--disc-color:' + r.disciplina_cor + '"></span> ' + esc(r.disciplina_nome) + '</td>' +
+          '<td>' + esc(r.topico_nome) + '</td>' +
+          '<td>' + r.duracao_minutos + ' min</td>' +
+          '<td>' + r.questoes_feitas + '</td>' +
+          '<td>' + r.acertos + '</td>' +
+          '<td><button class="icon-btn tiny" data-action="delete-sessao" data-id="' + r.id + '" title="Excluir">×</button></td></tr>';
+      }).join('') : '<tr><td colspan="7" class="empty-hint">Nenhuma sessão registrada ainda.</td></tr>';
+    }
+
+    /* =====================================================================
+       BACKUP
+    ===================================================================== */
+    function exportDb(){
+      var data = db.export();
+      var blob = new Blob([data], { type:'application/x-sqlite3' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      var ts = new Date().toISOString().slice(0,10);
+      a.href = url; a.download = 'estudos_backup_' + ts + '.sqlite';
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+      showToast('Backup exportado.');
+    }
+    function handleImport(file){
+      file.arrayBuffer().then(function(buf){
+        try{
+          var newDb = new SQLNS.Database(new Uint8Array(buf));
+          newDb.run("PRAGMA foreign_keys = ON;");
+          var check = newDb.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='disciplinas'");
+          if(!check.length) throw new Error('Arquivo inválido: estrutura não reconhecida.');
+          db = newDb;
+          persistNow();
+          timerState.cicloItemId = null;
+          pauseTimer();
+          renderAll();
+          showToast('Backup importado com sucesso.');
+        }catch(err){
+          console.error(err);
+          showToast('Não foi possível importar este arquivo.');
+        }
+      });
+    }
+    function resetDatabase(){
+      pauseTimer();
+      db = new SQLNS.Database();
+      db.run("PRAGMA foreign_keys = ON;");
+      db.run(SCHEMA_SQL);
+      seedDatabase();
+      persistNow();
+      timerState.cicloItemId = null;
+      renderAll();
+      showToast('Dados reiniciados com o edital de exemplo.');
+    }
+
+    /* =====================================================================
+       EVENTOS GLOBAIS
+    ===================================================================== */
+    document.addEventListener('click', function(e){
+      var el = e.target.closest('[data-action]');
+      if(!el) return;
+      var action = el.dataset.action;
+      var id = el.dataset.id ? parseInt(el.dataset.id, 10) : null;
+
+      switch(action){
+        case 'add-topico': openTopicoModal(null, id); break;
+        case 'edit-topico': openTopicoModal(id); break;
+        case 'delete-topico':
+          confirmAction('Excluir este tópico?', function(){
+            exec("DELETE FROM topicos WHERE id=?", [id]);
+            renderEdital(); renderDashboardIfActive();
+          });
+          break;
+        case 'set-status':
+          exec("UPDATE topicos SET status=? WHERE id=?", [el.dataset.status, id]);
+          renderEdital(); renderDashboardIfActive();
+          break;
+        case 'add-disciplina': openDisciplinaModal(null); break;
+        case 'rename-disc': openDisciplinaModal(id); break;
+        case 'delete-disc':
+          confirmAction('Excluir esta disciplina e todos os seus tópicos? Essa ação não pode ser desfeita.', function(){
+            exec("DELETE FROM disciplinas WHERE id=?", [id]);
+            renderEdital(); renderCiclo(); renderDashboardIfActive();
+          });
+          break;
+        case 'bulk-move': {
+          var bar = document.getElementById('selection-bar');
+          var ids = JSON.parse(bar.dataset.ids || '[]');
+          var target = parseInt(document.getElementById('bulk-target-disc').value, 10);
+          if(!ids.length || !target) return;
+          ids.forEach(function(tid){ exec("UPDATE topicos SET disciplina_id=? WHERE id=?", [target, tid]); });
+          renderEdital(); renderDashboardIfActive();
+          break;
+        }
+        case 'bulk-delete': {
+          var bar2 = document.getElementById('selection-bar');
+          var ids2 = JSON.parse(bar2.dataset.ids || '[]');
+          if(!ids2.length) return;
+          confirmAction('Excluir ' + ids2.length + ' tópico(s) selecionado(s)?', function(){
+            ids2.forEach(function(tid){ exec("DELETE FROM topicos WHERE id=?", [tid]); });
+            renderEdital(); renderDashboardIfActive();
+          });
+          break;
+        }
+        case 'bulk-clear': renderEdital(); break;
+
+        case 'new-ciclo': openNovoCicloModal(); break;
+        case 'delete-ciclo': {
+          var sel = document.getElementById('ciclo-select');
+          var cid = parseInt(sel.value, 10);
+          if(!cid) return;
+          confirmAction('Excluir este ciclo e sua sequência? As sessões de estudo já registradas serão mantidas.', function(){
+            exec("DELETE FROM ciclos WHERE id=?", [cid]);
+            ensureActiveCiclo();
+            timerState.cicloItemId = null;
+            renderCiclo(); renderDashboardIfActive();
+          });
+          break;
+        }
+        case 'add-ciclo-item': {
+          var discSel = document.getElementById('add-item-disciplina');
+          var discId = parseInt(discSel.value, 10);
+          var minutos = parseInt(document.getElementById('add-item-minutos').value, 10) || 30;
+          var cicloAtivo = getCicloAtivo();
+          if(!cicloAtivo){ showToast('Crie um ciclo primeiro.'); return; }
+          if(!discId){ showToast('Cadastre ao menos uma disciplina primeiro.'); return; }
+          var maxOrdem = one("SELECT COALESCE(MAX(ordem),-1) as m FROM ciclo_itens WHERE ciclo_id=?", [cicloAtivo.id]).m;
+          exec("INSERT INTO ciclo_itens (ciclo_id,disciplina_id,tempo_alocado_minutos,ordem,status_atual) VALUES (?,?,?,?,?)",
+            [cicloAtivo.id, discId, minutos, maxOrdem + 1, 'pendente']);
+          renderCiclo(); renderDashboardIfActive();
+          break;
+        }
+        case 'remove-ciclo-item':
+          confirmAction('Remover esta disciplina do ciclo?', function(){
+            exec("DELETE FROM ciclo_itens WHERE id=?", [id]);
+            timerState.cicloItemId = null;
+            renderCiclo(); renderDashboardIfActive();
+          });
+          break;
+        case 'reiniciar-ciclo':
+          exec("UPDATE ciclo_itens SET status_atual='pendente' WHERE ciclo_id=?", [id]);
+          var first = one("SELECT id FROM ciclo_itens WHERE ciclo_id=? ORDER BY ordem LIMIT 1", [id]);
+          if(first) exec("UPDATE ciclo_itens SET status_atual='em_andamento' WHERE id=?", [first.id]);
+          timerState.cicloItemId = null;
+          renderCiclo();
+          break;
+
+        case 'timer-play-pause':
+          if(timerState.running) pauseTimer(); else startTimer();
+          refreshStudyModeCard();
+          break;
+        case 'timer-reset':
+          resetTimer(timerState.minutosAlocados);
+          refreshStudyModeCard();
+          break;
+        case 'timer-toggle-mode':
+          toggleTimerMode(timerState.minutosAlocados);
+          refreshStudyModeCard();
+          break;
+        case 'registrar-sessao': {
+          var topicosAttr = el.dataset.topicos || '[]';
+          var topicos;
+          try{ topicos = JSON.parse(topicosAttr); }catch(err){ topicos = []; }
+          openSessaoModal(parseInt(el.dataset.itemId, 10), topicos);
+          break;
+        }
+        case 'avancar-sem-registrar':
+          confirmAction('Avançar sem registrar uma sessão de estudo?', function(){
+            avancarCiclo(parseInt(el.dataset.itemId, 10));
+          });
+          break;
+
+        case 'delete-sessao':
+          confirmAction('Excluir esta sessão do histórico?', function(){
+            exec("DELETE FROM sessoes_estudo WHERE id=?", [id]);
+            renderSessoes(); renderDashboardIfActive();
+          });
+          break;
+
+        case 'export-db': exportDb(); break;
+        case 'reset-db':
+          confirmAction('Isso vai apagar TODOS os seus dados salvos e restaurar o edital de exemplo. Deseja continuar?', function(){
+            resetDatabase();
+          });
+          break;
+      }
+    });
+
+    document.addEventListener('change', function(e){
+      var el = e.target;
+      if(el.classList && el.classList.contains('topico-check')){ updateSelectionBar(); return; }
+      if(el.classList && el.classList.contains('item-minutos')){
+        var iid = parseInt(el.dataset.id, 10);
+        var val = parseInt(el.value, 10) || 5;
+        exec("UPDATE ciclo_itens SET tempo_alocado_minutos=? WHERE id=?", [val, iid]);
+        if(timerState.cicloItemId === iid){ timerState.minutosAlocados = val; }
+        return;
+      }
+      if(el.dataset && el.dataset.action === 'merge-disc'){
+        var sourceId = parseInt(el.dataset.id, 10);
+        var targetId = parseInt(el.value, 10);
+        if(!targetId) return;
+        confirmAction('Mesclar esta disciplina na disciplina selecionada? Todos os tópicos serão movidos para lá.', function(){
+          mergeDisciplinas(sourceId, targetId);
+          renderEdital(); renderCiclo(); renderDashboardIfActive();
+        }, function(){ el.value = ''; });
+        return;
+      }
+      if(el.id === 'ciclo-select'){
+        var cId = parseInt(el.value, 10);
+        if(!cId) return;
+        exec("UPDATE ciclos SET ativo=0");
+        exec("UPDATE ciclos SET ativo=1 WHERE id=?", [cId]);
+        timerState.cicloItemId = null;
+        renderCiclo(); renderDashboardIfActive();
+        return;
+      }
+      if(el.id === 'import-file' && el.files && el.files[0]){
+        handleImport(el.files[0]);
+        el.value = '';
+        return;
+      }
+      if(el.id === 'dark-toggle'){
+        document.documentElement.classList.toggle('dark', el.checked);
+        localStorage.setItem('theme', el.checked ? 'dark' : 'light');
+        if(currentView === 'dashboard') renderDashboard();
+        return;
+      }
+    });
+
+    document.querySelectorAll('.nav-link').forEach(function(a){
+      a.addEventListener('click', function(e){ e.preventDefault(); navigate(a.dataset.view); });
+    });
+    document.getElementById('sidebar-toggle').addEventListener('click', function(){
+      var sb = document.getElementById('sidebar');
+      sb.classList.toggle('collapsed');
+      localStorage.setItem('sidebarCollapsed', sb.classList.contains('collapsed') ? '1' : '0');
+    });
+    document.getElementById('mobile-menu-btn').addEventListener('click', function(){
+      document.getElementById('sidebar').classList.toggle('open');
+    });
+    document.getElementById('modal-overlay').addEventListener('click', function(e){
+      if(e.target.id === 'modal-overlay') closeModal();
+    });
+
+    /* Barra de seleção múltipla (injetada dinamicamente na view Edital) */
+    (function injectSelectionBar(){
+      var editalView = document.getElementById('view-edital');
+      var bar = document.createElement('div');
+      bar.className = 'selection-bar hidden';
+      bar.id = 'selection-bar';
+      bar.dataset.ids = '[]';
+      bar.innerHTML =
+        '<span id="selection-count">0 selecionado(s)</span>' +
+        '<select id="bulk-target-disc"></select>' +
+        '<button class="btn-primary" data-action="bulk-move">Mover para</button>' +
+        '<button class="btn-danger" data-action="bulk-delete">Excluir</button>' +
+        '<button class="btn-text" data-action="bulk-clear">Cancelar</button>';
+      editalView.appendChild(bar);
+    })();
+
+    window.addEventListener('beforeunload', function(){
+      if(persistTimer){ clearTimeout(persistTimer); persistNow(); }
+    });
+
+    /* =====================================================================
+       INICIALIZAÇÃO
+    ===================================================================== */
+    function applySavedPrefs(){
+      if(localStorage.getItem('theme') === 'dark'){
+        document.documentElement.classList.add('dark');
+        document.getElementById('dark-toggle').checked = true;
+      }
+      if(localStorage.getItem('sidebarCollapsed') === '1'){
+        document.getElementById('sidebar').classList.add('collapsed');
+      }
+    }
+
+    function initApp(){
+      applySavedPrefs();
+      initSqlJs({ locateFile: function(f){ return 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.13.0/' + f; } })
+        .then(function(SQL){
+          SQLNS = SQL;
+          return idbGet('sqlite_db').catch(function(){ return null; });
+        })
+        .then(function(saved){
+          if(saved){
+            db = new SQLNS.Database(new Uint8Array(saved));
+            db.run("PRAGMA foreign_keys = ON;");
+          } else {
+            db = new SQLNS.Database();
+            db.run("PRAGMA foreign_keys = ON;");
+            db.run(SCHEMA_SQL);
+            seedDatabase();
+            persistNow();
+          }
+          ensureActiveCiclo();
+          renderAll();
+          showToast('Pronto! Dados carregados.');
+        })
+        .catch(function(err){
+          console.error('Erro ao iniciar aplicativo:', err);
+          showToast('Erro ao carregar o banco de dados local.');
+        });
+    }
+
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
+
+  })();
+  </script>
+</body>
+</html>
